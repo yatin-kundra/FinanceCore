@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fincore"
+version = "0.1.0"
+description = "Production-grade financial analytics and portfolio engine"
+authors = [{name = "Your Name"}]
+requires-python = ">=3.10"
+
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "duckdb>=0.9",
+    "yfinance>=0.2",
+    "structlog>=24.1",
+    "pydantic>=2.0",
+    "apscheduler>=3.10",
+    "pyyaml>=6.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.1"
+]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I"]

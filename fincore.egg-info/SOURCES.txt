@@ -1,0 +1,17 @@
+README.md
+pyproject.toml
+fincore/__init__.py
+fincore.egg-info/PKG-INFO
+fincore.egg-info/SOURCES.txt
+fincore.egg-info/dependency_links.txt
+fincore.egg-info/requires.txt
+fincore.egg-info/top_level.txt
+fincore/config/settings.py
+fincore/data/__init__.py
+fincore/data/benchmarks.py
+fincore/data/universe.py
+fincore/logging/logger.py
+fincore/storage/__init__.py
+fincore/storage/connection.py
+fincore/storage/repositories.py
+fincore/storage/schema.py
