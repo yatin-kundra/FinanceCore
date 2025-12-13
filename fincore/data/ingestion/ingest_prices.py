@@ -1,5 +1,6 @@
 from fincore.storage.connection import get_connection
-from fincore.data.yahoo import fetch_prices
+from fincore.data.yahoo import ingest_prices_for_asset
+
 from fincore.data.universe import NIFTY_500
 from fincore.logging.logger import get_logger
 
@@ -21,7 +22,7 @@ def ingest_all_prices(default_start="2000-01-01"):
 
             start = last_date or default_start
 
-            df = fetch_prices(ticker, start=start)
+            df = ingest_prices_for_asset(ticker, start=start)
 
             if df.empty:
                 log.warning("no_data", ticker=ticker)
