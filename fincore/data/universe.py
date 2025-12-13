@@ -82,7 +82,7 @@ NIFTY_500 = [
 
 BENCHMARKS = {
     "NIFTY_50": "^NSEI",
-    "NIFTY_500": "^CNX500",
+    "NIFTY_500": "^CRSLDX", 
     "BANK_NIFTY": "^NSEBANK",
 }
 
