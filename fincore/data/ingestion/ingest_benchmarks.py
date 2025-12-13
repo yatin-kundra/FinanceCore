@@ -12,13 +12,15 @@ def ingest_benchmarks(start: str = "2000-01-01"):
     """
     Ingest benchmark adjusted close prices from Yahoo Finance.
 
-    Benchmarks are treated as adjusted price series by definition.
-    Data is ingested incrementally and idempotently.
+    - Forces adjusted prices
+    - Idempotent
+    - DuckDB-safe
+    - CI-safe
     """
 
     con = get_connection()
 
-    # Ensure table exists once (not inside loop)
+    # Create table once
     con.execute(
         """
         CREATE TABLE IF NOT EXISTS benchmark_prices (
@@ -30,23 +32,34 @@ def ingest_benchmarks(start: str = "2000-01-01"):
         """
     )
 
-    for name, ticker in BENCHMARKS.items():
+    for benchmark, ticker in BENCHMARKS.items():
         try:
-            log.info("benchmark_fetch_start", benchmark=name, ticker=ticker)
+            log.info(
+                "benchmark_fetch_start",
+                benchmark=benchmark,
+                ticker=ticker,
+            )
 
             df = yf.download(
                 ticker,
                 start=start,
                 progress=False,
-                auto_adjust=False,  # IMPORTANT: we explicitly control adjustment
+                auto_adjust=False,
             )
 
             if df.empty:
-                log.warning("benchmark_empty", benchmark=name)
+                log.warning("benchmark_empty", benchmark=benchmark)
                 continue
 
-            # Normalize
+            # Reset index and flatten columns (VERY IMPORTANT)
             df = df.reset_index()
+            df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
+
+            if "Adj Close" not in df.columns:
+                raise ValueError(
+                    f"Adjusted close missing for benchmark {benchmark}"
+                )
+
             df = df.rename(
                 columns={
                     "Date": "date",
@@ -54,36 +67,34 @@ def ingest_benchmarks(start: str = "2000-01-01"):
                 }
             )
 
-            if "adj_close" not in df.columns:
-                raise ValueError(
-                    f"Adjusted close price missing for benchmark {name}"
-                )
-
-            df["benchmark"] = name
+            df["benchmark"] = benchmark
             df = df[["benchmark", "date", "adj_close"]]
 
-            # Insert row-by-row (safe for DuckDB + IGNORE semantics)
-            for _, row in df.iterrows():
-                con.execute(
-                    """
-                    INSERT OR IGNORE INTO benchmark_prices
-                    (benchmark, date, adj_close)
-                    VALUES (?, ?, ?)
-                    """,
-                    [row.benchmark, row.date, float(row.adj_close)],
-                )
+            # Convert to pure Python tuples (DuckDB-safe)
+            records = [
+                (benchmark, row.date, float(row.adj_close))
+                for row in df.itertuples(index=False)
+            ]
+
+            con.executemany(
+                """
+                INSERT OR IGNORE INTO benchmark_prices
+                (benchmark, date, adj_close)
+                VALUES (?, ?, ?)
+                """,
+                records,
+            )
 
             log.info(
                 "benchmark_ingested",
-                benchmark=name,
-                rows=len(df),
+                benchmark=benchmark,
+                rows=len(records),
             )
 
         except Exception as e:
-            # DuckDB autocommits — no ROLLBACK needed
             log.error(
                 "benchmark_ingestion_failed",
-                benchmark=name,
+                benchmark=benchmark,
                 error=str(e),
             )
             raise
