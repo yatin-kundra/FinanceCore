@@ -19,9 +19,10 @@ jobs:
               with:
                   python-version: "3.11"
 
-            - name: Install dependencies
+            - name: Install project
               run: |
-                  pip install -r requirements.txt
+                  pip install --upgrade pip
+                  pip install .
 
             - name: Run equity price ingestion
               run: |
@@ -41,6 +42,6 @@ jobs:
               run: |
                   git config user.name "github-actions"
                   git config user.email "github-actions@github.com"
-                  git add data_store/market.db
+                  git add data_store/market.duckdb
                   git commit -m "Daily market data ingestion" || echo "No changes"
                   git push
