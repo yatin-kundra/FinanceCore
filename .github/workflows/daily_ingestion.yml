@@ -24,6 +24,13 @@ jobs:
                   pip install --upgrade pip
                   pip install .
 
+            - name: Bootstrap assets
+              run: |
+                  python - <<EOF
+                  from fincore.data.ingestion.ingest_assets import ingest_assets
+                  ingest_assets()
+                  EOF
+
             - name: Run equity price ingestion
               run: |
                   python - <<EOF
