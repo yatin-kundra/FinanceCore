@@ -2,4 +2,3 @@ __pycache__/
 *.pyc
 .env
 .fincore/
-data_store/market.duckdb
