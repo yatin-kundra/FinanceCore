@@ -45,10 +45,9 @@ jobs:
                   ingest_benchmarks()
                   EOF
 
-            - name: Commit updated database
-              run: |
-                  git config user.name "github-actions"
-                  git config user.email "github-actions@github.com"
-                  git add data_store/market.duckdb
-                  git commit -m "Daily market data ingestion" || echo "No changes"
-                  git push
+            - name: Upload DuckDB artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: market-duckdb
+                  path: data_store/market.duckdb
+                  retention-days: 30
